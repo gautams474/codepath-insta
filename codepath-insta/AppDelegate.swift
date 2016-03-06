@@ -7,15 +7,45 @@
 //
 
 import UIKit
+import Parse
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
-
+    
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
+        // Initialize Parse
+        // Set applicationId and server based on the values in the Heroku settings.
+        // clientKey is not used on Parse open source unless explicitly configured
+        Parse.initializeWithConfiguration(
+            ParseClientConfiguration(block: { (configuration:ParseMutableClientConfiguration) -> Void in
+                configuration.applicationId = "myAppId"
+                configuration.clientKey = "777"
+                configuration.server = "https://codepath-insta.herokuapp.com/parse"
+            })
+        )
+        if PFUser.currentUser() != nil {
+            window = UIWindow(frame: UIScreen.mainScreen().bounds)
+            // if there is a logged in user then load the home view controller
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+           
+            let tabBarController: UITabBarController = storyboard.instantiateViewControllerWithIdentifier("TabBarController") as! UITabBarController
+            self.window?.makeKeyAndVisible()
+            self.window?.rootViewController = tabBarController
+           
+        }
+        
+        
+        NSNotificationCenter.defaultCenter().addObserverForName("UserLoggedOut", object: nil, queue: NSOperationQueue.mainQueue())
+            { (notification: NSNotification) -> Void in
+                
+                let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                let vc = storyboard.instantiateInitialViewController()
+                self.window?.rootViewController = vc
+        }
+
         return true
     }
 
